@@ -24,14 +24,32 @@ namespace Adminka
         private void button1_Click(object sender, EventArgs e)
         {
             string tme = "";
+            string txt = "";
+            string tmp = "";
+
             if (numericUpDown1.Value != 0)
             {
-                tme = "\ntime=" + numericUpDown1.Value.ToString();
+                tme = "<time>" + numericUpDown1.Value.ToString()+"</time>";
             }
-                
 
-            Byte[] sendBytes = Encoding.UTF8.GetBytes("text="+textBox1.Text+tme);
-            udpClient1.Send(sendBytes, sendBytes.Length);
+            if (textBox1.TextLength > 0)
+            {
+                txt = "<text>" + textBox1.Text + "</text>";
+            }
+
+            tmp = txt + tme;
+
+            if (tmp.Length > 0)
+            {
+                Byte[] sendBytes = Encoding.UTF8.GetBytes(txt + tme);
+                udpClient1.Send(sendBytes, sendBytes.Length);
+            }
+            else
+            {
+                MessageBox.Show("Нечего отправлять!");
+            }
+
+            
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
