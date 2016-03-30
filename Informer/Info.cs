@@ -18,6 +18,14 @@ namespace Informer
         // The IPEndPoint will allow you to read datagrams sent from any source.
         IPEndPoint RemoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
+        int min = 0;
+        int sec = 0;
+
+        delegate void SetTextCallback(string text);
+        delegate void SetTimeCallback(int minutes, int seconds); 
+
+        private Timer timer1;
+
         public InfoForm()
         {
             InitializeComponent();
@@ -31,6 +39,10 @@ namespace Informer
                 MessageBox.Show(e.ToString());
             }
 
+            timer1 = new Timer();           
+            timer1.Interval = 1000;
+            timer1.Tick += timer1_Tick;
+            timer1.Enabled = false;
         }
 
         //CallBack
@@ -52,7 +64,7 @@ namespace Informer
             {
                 positionStart = position + 6;
                 positionEnd = recvText.IndexOf("</text>", positionStart);
-                textBox1.Text = recvText.Substring(positionStart, positionEnd - positionStart).Trim();
+                this.SetText(recvText.Substring(positionStart, positionEnd - positionStart).Trim());
                   
             }
 
@@ -62,10 +74,15 @@ namespace Informer
             {
                 positionStart = position + 6;
                 positionEnd = recvText.IndexOf("</time>", positionStart);
-                label1.Text = recvText.Substring(positionStart, positionEnd - positionStart).Trim();
+                min = Int32.Parse(recvText.Substring(positionStart, positionEnd - positionStart).Trim());
+
+                timer1.Enabled = true;
+                SetTime(min, sec);
+                
+                //timer1.Start();
             }
  
-            FormMax();
+            //FormMax();
             
             /*
             string pattern = @"(text|time)=(*)";
@@ -96,6 +113,58 @@ namespace Informer
             this.WindowState = FormWindowState.Minimized;
             this.Enabled = false;
             notifyIcon1.Visible = true;
+        }
+
+        private void SetText(string text)
+        {
+            if (this.textBox1.InvokeRequired)
+            {
+                SetTextCallback d = new SetTextCallback(SetText);
+                this.Invoke(d, new object[] { text });
+            }
+            else
+            {
+                this.textBox1.Text = text;
+            }
+        }
+
+        private void SetTime(int minutes, int seconds)
+        {
+            if (this.label1.InvokeRequired)
+            {
+                SetTimeCallback d = new SetTimeCallback(SetTime);
+                this.Invoke(d, new object[] { minutes, seconds });
+            }
+            else
+            {
+                this.label1.Text = minutes.ToString("D2") + ":" + seconds.ToString("D2"); ;
+            }
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            label1.ForeColor = Color.Red;
+            if (sec == 0)
+            {
+
+                if (min >0)
+                {
+                    min--;
+                    sec = 59;
+                }
+               else
+                {
+                    timer1.Enabled = false;
+                    //timer1.Stop();
+                    MessageBox.Show("Time is Over");
+                }
+                
+            }
+            else
+            {
+                sec--;
+            }
+            SetTime(min, sec);
         }
     }
 }
